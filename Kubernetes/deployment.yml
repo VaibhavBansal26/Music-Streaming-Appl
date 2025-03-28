@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-streaming-appl-admin
+  labels:
+    app: music-streaming-appl-admin
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: music-streaming-appl-admin
+  template:
+    metadata:
+      labels:
+        app: music-streaming-appl-admin
+    spec:
+      containers:
+      - name: admin-service
+        image: vaibhavbansal26/music-streaming-appl-admin:latest
+        ports:
+        - containerPort: 5002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-streaming-appl-song
+  labels:
+    app: music-streaming-appl-song
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: music-streaming-appl-song
+  template:
+    metadata:
+      labels:
+        app: music-streaming-appl-song
+    spec:
+      containers:
+      - name: song-service
+        image: vaibhavbansal26/music-streaming-appl-song:latest
+        ports:
+        - containerPort: 5003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-streaming-appl-user
+  labels:
+    app: music-streaming-appl-user
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: music-streaming-appl-user
+  template:
+    metadata:
+      labels:
+        app: music-streaming-appl-user
+    spec:
+      containers:
+      - name: user-service
+        image: vaibhavbansal26/music-streaming-appl-user:latest
+        ports:
+        - containerPort: 5001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-streaming-appl-frontend
+  labels:
+    app: music-streaming-appl-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: music-streaming-appl-frontend
+  template:
+    metadata:
+      labels:
+        app: music-streaming-appl-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: vaibhavbansal26/music-streaming-appl-frontend:latest
+        ports:
+        - containerPort: 80

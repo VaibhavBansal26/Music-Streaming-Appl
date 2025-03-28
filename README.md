@@ -84,6 +84,28 @@ docker system prune --volumes
 
 # EC2
 
+# Jenkins
+
 ```
 ssh -i "bms.pem" ubuntu@ec2-54-164-249-242.compute-1.amazonaws.com
+
+chmod +x ./your_executable_file
+./your_executable_file
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+installing suggested plugins
+
+http://54.164.249.242:8080/
+
 ```
+
+# sonarqube
+
+```
+admin
+admin12
+```
+
+
+
