@@ -1,45 +1,91 @@
+# version: "3.8"
+# services:
+#   admin-service:
+#     build: ./adminService
+#     container_name: admin-service
+#     platform: linux/arm64
+#     ports:
+#       - "5002:5002"
+#     env_file:
+#       - ./adminService/.env
+#     networks:
+#       - app-network
+
+#   song-service:
+#     build: ./songService
+#     container_name: song-service
+#     platform: linux/arm64
+#     ports:
+#       - "5003:5003"
+#     env_file:
+#       - ./songService/.env
+#     networks:
+#       - app-network
+
+#   user-service:
+#     build: ./userService
+#     container_name: user-service
+#     platform: linux/arm64
+#     ports:
+#       - "5001:5001"
+#     env_file:
+#       - ./userService/.env
+#     networks:
+#       - app-network
+
+#   frontend:
+#     build: ./frontend
+#     container_name: frontend
+#     platform: linux/arm64
+#     ports:
+#       - "80:80"
+#     # Optionally, add the env_file if you need to pass build-time or runtime variables:
+#     env_file:
+#       - ./frontend/.env
+#     networks:
+#       - app-network
+
+# networks:
+#   app-network:
+#     driver: bridge
+
+
+# # redis:
+# #     image: redis:7-alpine
+# #     container_name: redis
+# #     ports:
+# #       - "6379:6379"
+# #     command: ["redis-server"]
+
 version: "3.8"
 services:
   admin-service:
     build: ./adminService
-    container_name: admin-service
-    platform: linux/arm64
-    ports:
-      - "5002:5002"
+    image: vaibhavbansal26/music-streaming-appl-admin:latest
     env_file:
-      - ./adminService/.env
+      - ./adminService/adminService.env
     networks:
       - app-network
 
   song-service:
     build: ./songService
-    container_name: song-service
-    platform: linux/arm64
-    ports:
-      - "5003:5003"
+    image: vaibhavbansal26/music-streaming-appl-song:latest
     env_file:
-      - ./songService/.env
+      - ./songService/songService.env
     networks:
       - app-network
 
   user-service:
     build: ./userService
-    container_name: user-service
-    platform: linux/arm64
-    ports:
-      - "5001:5001"
+    image: vaibhavbansal26/music-streaming-appl-user:latest
     env_file:
-      - ./userService/.env
+      - ./userService/userService.env
     networks:
       - app-network
 
   frontend:
     build: ./frontend
-    container_name: frontend
-    platform: linux/arm64
-    ports:
-      - "80:80"
-    # Optionally, add the env_file if you need to pass build-time or runtime variables:
+    image: vaibhavbansal26/music-streaming-appl-frontend:latest
     env_file:
       - ./frontend/.env
     networks:
@@ -48,11 +94,3 @@ services:
 networks:
   app-network:
     driver: bridge
-
-
-# redis:
-#     image: redis:7-alpine
-#     container_name: redis
-#     ports:
-#       - "6379:6379"
-#     command: ["redis-server"]
