@@ -44,7 +44,7 @@ npm i @neondatabase/serverless
 ```
 
 #redis
-
+```
 make account in redis.io and set up connection
 
 #frontend
@@ -57,10 +57,12 @@ pm2 start "dist/index.js" --name "music-app"
 npm run build
 sudo npm install -g serve
 pm2 start "serve -s dist -l 3000" --name "vite-app"
-
+```
 
 
 # Docker
+
+```
 
 docker compose up -d
 docker compose down -v
@@ -78,3 +80,4 @@ docker volume prune
 docker container prune
 docker network prune
 docker system prune --volumes
+```
