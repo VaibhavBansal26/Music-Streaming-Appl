@@ -81,3 +81,9 @@ docker container prune
 docker network prune
 docker system prune --volumes
 ```
+
+# EC2
+
+```
+ssh -i "bms.pem" ubuntu@ec2-54-164-249-242.compute-1.amazonaws.com
+```
