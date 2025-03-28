@@ -63,7 +63,7 @@ services:
     build: ./adminService
     image: vaibhavbansal26/music-streaming-appl-admin:latest
     env_file:
-      - ./adminService/adminService.env
+      - ./adminService/.env
     networks:
       - app-network
 
@@ -71,7 +71,7 @@ services:
     build: ./songService
     image: vaibhavbansal26/music-streaming-appl-song:latest
     env_file:
-      - ./songService/songService.env
+      - ./songService/.env
     networks:
       - app-network
 
@@ -79,7 +79,7 @@ services:
     build: ./userService
     image: vaibhavbansal26/music-streaming-appl-user:latest
     env_file:
-      - ./userService/userService.env
+      - ./userService/.env
     networks:
       - app-network
 
