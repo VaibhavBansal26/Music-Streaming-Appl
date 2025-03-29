@@ -31,7 +31,7 @@ const client = new MongoClient(process.env.MONGO_URI as string, {
       await client.db(process.env.DB_NAME).command({ ping: 1 });
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
-      await client.close();
+    //   await client.close();
     }
   }
   
