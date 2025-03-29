@@ -97,7 +97,7 @@ spec:
     app: music-streaming-appl-admin
   ports:
   - protocol: TCP
-    port: 80
+    port: 5002
     targetPort: 5002
 ---
 apiVersion: v1
@@ -112,7 +112,7 @@ spec:
     app: music-streaming-appl-song
   ports:
   - protocol: TCP
-    port: 80
+    port: 5003
     targetPort: 5003
 ---
 apiVersion: v1
@@ -127,7 +127,7 @@ spec:
     app: music-streaming-appl-user
   ports:
   - protocol: TCP
-    port: 80
+    port: 5001
     targetPort: 5001
 ---
 apiVersion: v1
