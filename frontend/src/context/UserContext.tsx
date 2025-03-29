@@ -10,7 +10,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 // const server = "http://13.235.70.183:5000";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_USER_URL;
 const API_USER_PORT = import.meta.env.VITE_API_USER_PORT;
 
 const server = `${API_URL}:${API_USER_PORT}`;

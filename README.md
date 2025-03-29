@@ -107,5 +107,9 @@ admin
 admin12
 ```
 
+VITE_API_ADMIN_URL=http://music-streaming-appl-admin-svc:5002
+VITE_API_SONG_URL=http://music-streaming-appl-song-svc:5003
+VITE_API_USER_URL=http://music-streaming-appl-user-svc:5001
 
 
+sudo docker system prune --all --volumes -f

@@ -10,7 +10,7 @@ import React, {
 
 
 // const server = "http://13.235.70.183:8000";
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_SONG_URL;
 const API_SONG_PORT = import.meta.env.VITE_API_SONG_PORT;
 
 const server = `${API_URL}:${API_SONG_PORT}`;
