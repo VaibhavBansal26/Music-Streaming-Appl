@@ -85,6 +85,69 @@
 #     nodePort: 30001
 
 
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: music-streaming-appl-admin-ext
+#   labels:
+#     app: music-streaming-appl-admin
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: music-streaming-appl-admin
+#   ports:
+#   - protocol: TCP
+#     port: 5002
+#     targetPort: 5002
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: music-streaming-appl-song-ext
+#   labels:
+#     app: music-streaming-appl-song
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: music-streaming-appl-song
+#   ports:
+#   - protocol: TCP
+#     port: 5003
+#     targetPort: 5003
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: music-streaming-appl-user-ext
+#   labels:
+#     app: music-streaming-appl-user
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: music-streaming-appl-user
+#   ports:
+#   - protocol: TCP
+#     port: 5001
+#     targetPort: 5001
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: music-streaming-appl-frontend-node
+#   labels:
+#     app: music-streaming-appl-frontend
+# spec:
+#   type: NodePort
+#   selector:
+#     app: music-streaming-appl-frontend
+#   ports:
+#   - protocol: TCP
+#     port: 80
+#     targetPort: 80
+#     nodePort: 30001
+
+
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -97,8 +160,8 @@ spec:
     app: music-streaming-appl-admin
   ports:
   - protocol: TCP
-    port: 5002
-    targetPort: 5002
+    port: 80         # Externally accessible port
+    targetPort: 5002 # Container port for admin service
 ---
 apiVersion: v1
 kind: Service
@@ -112,8 +175,8 @@ spec:
     app: music-streaming-appl-song
   ports:
   - protocol: TCP
-    port: 5003
-    targetPort: 5003
+    port: 80         # Externally accessible port
+    targetPort: 5003 # Container port for song service
 ---
 apiVersion: v1
 kind: Service
@@ -127,21 +190,20 @@ spec:
     app: music-streaming-appl-user
   ports:
   - protocol: TCP
-    port: 5001
-    targetPort: 5001
+    port: 80         # Externally accessible port
+    targetPort: 5001 # Container port for user service
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: music-streaming-appl-frontend-node
+  name: music-streaming-appl-frontend-ext
   labels:
     app: music-streaming-appl-frontend
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: music-streaming-appl-frontend
   ports:
   - protocol: TCP
-    port: 80
-    targetPort: 80
-    nodePort: 30001
+    port: 80         # Externally accessible port
+    targetPort: 80   # Container port for frontend
