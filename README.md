@@ -1,5 +1,54 @@
-# Music-Streaming-Appl
-Microservice Architecture
+# Music-Streaming-Application
+Microservice Architecture (3 Tier Architecture Deployment)
+
+
+Tech Stack
+1. Kubernetes (AWS EKS)
+2. Jenkins
+3. SonarQube
+4. Trivy
+5. Owasp
+6. Docker
+7. Docker Compose
+8. React JS
+9. Redis
+10. Tailwind
+11. AWS EC2
+12. Mongo DB
+13. Node JS
+14. PostgreSQL
+15. Cloudinary
+16. Typescript
+17. JWT Authentication
+
+Demo Screenshots
+
+![1](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290088/Screenshot_2025-03-29_at_6.14.21_PM_v0nh0i.png)
+
+![2](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290090/Screenshot_2025-03-29_at_6.14.39_PM_ahwaub.png)
+
+![3](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290091/Screenshot_2025-03-29_at_7.10.24_PM_mfs6kv.png)
+
+![4](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290092/Screenshot_2025-03-29_at_7.12.28_PM_bz8gx6.png)
+
+![5](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290093/Screenshot_2025-03-29_at_7.12.50_PM_dbpmy0.png)
+
+![5.1](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290093/Screenshot_2025-03-29_at_7.13.02_PM_whq3fv.png)
+
+![6](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290093/Screenshot_2025-03-29_at_7.09.58_PM_hskt1t.png)
+
+![7](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290091/Screenshot_2025-03-29_at_7.09.31_PM_idx586.png)
+
+![8](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290091/Screenshot_2025-03-29_at_7.09.12_PM_pmqtxr.png)
+
+![9](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290091/Screenshot_2025-03-29_at_7.11.09_PM_iarmeq.png)
+
+![10](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290089/Screenshot_2025-03-29_at_7.08.34_PM_p7rgg5.png)
+
+![11](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290089/Screenshot_2025-03-29_at_7.09.03_PM_txalkk.png)
+
+![12](https://res.cloudinary.com/vaibhav-codexpress/image/upload/v1743290088/Screenshot_2025-03-29_at_7.08.01_PM_ybpbik.png)
+
 
 ```
 npm init -y
@@ -102,14 +151,19 @@ http://54.164.249.242:8080/
 
 # sonarqube
 
+http://54.164.249.242:8080/sonarqube-webhook
+
 ```
 admin
 admin12
 ```
-
+``
 VITE_API_ADMIN_URL=http://music-streaming-appl-admin-svc:5002
 VITE_API_SONG_URL=http://music-streaming-appl-song-svc:5003
 VITE_API_USER_URL=http://music-streaming-appl-user-svc:5001
 
+```
 
+```
 sudo docker system prune --all --volumes -f
+```
