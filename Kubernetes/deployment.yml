@@ -213,8 +213,12 @@ spec:
         ports:
         - containerPort: 80
         env:
-        - name: VITE_API_URL
-          value: "http://music-streaming-appl-admin-svc:5002"
+        - name: VITE_API_SONG_URL
+          value: "http://music-streaming-appl-song-svc"
+        - name: VITE_API_USER_URL
+          value: "http://music-streaming-appl-user-svc"
+        - name: VITE_API_ADMIN_URL
+          value: "http://music-streaming-appl-admin-svc"
         - name: VITE_API_SONG_PORT
           value: "5003"
         - name: VITE_API_USER_PORT

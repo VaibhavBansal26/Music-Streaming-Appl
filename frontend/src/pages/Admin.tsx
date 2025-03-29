@@ -7,7 +7,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { MdDelete } from "react-icons/md";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_ADMIN_URL;
 const API_ADMIN_PORT = import.meta.env.VITE_API_ADMIN_PORT;
 
 const server = `${API_URL}:${API_ADMIN_PORT}`;
