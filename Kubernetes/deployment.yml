@@ -111,7 +111,7 @@ spec:
         - name: DB_URL
           value: "postgresql://neondb_owner:npg_9dcrN3VsXeiQ@ep-lucky-credit-a5p1gk2f-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
         - name: PORT
-          value: 5002
+          value: "5002"
         - name: User_URL
           value: "http://music-streaming-appl-user-svc:5001"
         - name: CLOUD_NAME
@@ -150,7 +150,7 @@ spec:
         - containerPort: 5003
         env:
         - name: PORT
-          value: 5003
+          value: "5003"
         - name: DB_URL
           value: "postgresql://neondb_owner:npg_9dcrN3VsXeiQ@ep-lucky-credit-a5p1gk2f-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
         - name: REDIS_PASSWORD
@@ -183,7 +183,7 @@ spec:
         - containerPort: 5001
         env:
         - name: PORT
-          value: 5001
+          value: "5001"
         - name: MONGO_URI
           value: "mongodb+srv://vaibhavbansal2020:vaibhav26@cluster0.2jmtnrw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
         - name: DB_NAME
@@ -220,8 +220,8 @@ spec:
         - name: VITE_API_ADMIN_URL
           value: "http://music-streaming-appl-admin-svc"
         - name: VITE_API_SONG_PORT
-          value: 5003
+          value: "5003"
         - name: VITE_API_USER_PORT
-          value: 5001
+          value: "5001"
         - name: VITE_API_ADMIN_PORT
-          value: 5002
+          value: "5002"
