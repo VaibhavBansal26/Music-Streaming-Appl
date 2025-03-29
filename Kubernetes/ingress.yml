@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: music-streaming-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: frontend.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: music-streaming-appl-frontend-svc
+            port:
+              number: 80
+  - host: api.example.com
+    http:
+      paths:
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: music-streaming-appl-admin-svc
+            port:
+              number: 5002
+      - path: /song
+        pathType: Prefix
+        backend:
+          service:
+            name: music-streaming-appl-song-svc
+            port:
+              number: 5003
+      - path: /user
+        pathType: Prefix
+        backend:
+          service:
+            name: music-streaming-appl-user-svc
+            port:
+              number: 5001
