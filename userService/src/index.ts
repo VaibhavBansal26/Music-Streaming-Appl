@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import userRoutes from './routes.js';
+import { MongoClient, ServerApiVersion } from 'mongodb';
 import cors from 'cors';
 
 const app = express();
@@ -16,17 +17,37 @@ const port = process.env.PORT || 5001;
 
 app.use("/api/v1",userRoutes)
 
-const connectDb = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI as string, {
-            dbName: process.env.DB_NAME,
-        });
-        console.log('Connected to database');
-
-    } catch (error) {
-        console.log(error);
+const client = new MongoClient(process.env.MONGO_URI as string, {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
     }
-}
+  });
+  
+  async function run() {
+    try {
+      await client.connect();
+      await client.db(process.env.DB_NAME).command({ ping: 1 });
+      console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+      await client.close();
+    }
+  }
+  
+  run().catch(console.dir);
+
+// const connectDb = async () => {
+//     try {
+//         await mongoose.connect(process.env.MONGO_URI as string, {
+//             dbName: process.env.DB_NAME,
+//         });
+//         console.log('Connected to database');
+
+//     } catch (error) {
+//         console.log(error);
+//     }
+// }
 
 app.get('/', (req, res) => {
     res.send('Hello World');
@@ -36,5 +57,6 @@ app.get('/', (req, res) => {
 
 app.listen(5001, () => {
     console.log(`Server is running on port ${port}`);
-    connectDb();
+    run().catch(console.dir);
+    // connectDb();
 })

@@ -36,6 +36,11 @@ app.use(express.json());
 
 const port = process.env.PORT || 5002;
 
+app.get('/', (req, res) => {
+    res.send('Hello World 3');
+});   
+
+
 async function connectDb() {
     try {
         console.log('Connected to database');

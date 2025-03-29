@@ -28,6 +28,11 @@ app.use(cors())
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+    res.send('Hello World 2');
+});   
+
+
 app.use("/api/v1", songRoutes);
 
 const port = process.env.PORT || 5003;
