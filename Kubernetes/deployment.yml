@@ -1,3 +1,91 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: music-streaming-appl-admin
+#   labels:
+#     app: music-streaming-appl-admin
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: music-streaming-appl-admin
+#   template:
+#     metadata:
+#       labels:
+#         app: music-streaming-appl-admin
+#     spec:
+#       containers:
+#       - name: admin-service
+#         image: vaibhavbansal26/music-streaming-appl-admin:latest
+#         ports:
+#         - containerPort: 5002
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: music-streaming-appl-song
+#   labels:
+#     app: music-streaming-appl-song
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: music-streaming-appl-song
+#   template:
+#     metadata:
+#       labels:
+#         app: music-streaming-appl-song
+#     spec:
+#       containers:
+#       - name: song-service
+#         image: vaibhavbansal26/music-streaming-appl-song:latest
+#         ports:
+#         - containerPort: 5003
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: music-streaming-appl-user
+#   labels:
+#     app: music-streaming-appl-user
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: music-streaming-appl-user
+#   template:
+#     metadata:
+#       labels:
+#         app: music-streaming-appl-user
+#     spec:
+#       containers:
+#       - name: user-service
+#         image: vaibhavbansal26/music-streaming-appl-user:latest
+#         ports:
+#         - containerPort: 5001
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: music-streaming-appl-frontend
+#   labels:
+#     app: music-streaming-appl-frontend
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: music-streaming-appl-frontend
+#   template:
+#     metadata:
+#       labels:
+#         app: music-streaming-appl-frontend
+#     spec:
+#       containers:
+#       - name: frontend
+#         image: vaibhavbansal26/music-streaming-appl-frontend:latest
+#         ports:
+#         - containerPort: 80
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,6 +107,25 @@ spec:
         image: vaibhavbansal26/music-streaming-appl-admin:latest
         ports:
         - containerPort: 5002
+        env:
+        - name: DB_URL
+          value: "postgresql://neondb_owner:npg_9dcrN3VsXeiQ@ep-lucky-credit-a5p1gk2f-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
+        - name: PORT
+          value: "5002"
+        - name: User_URL
+          value: "http://music-streaming-appl-user-svc:5001"
+        - name: CLOUD_NAME
+          value: "vaibhav-codexpress"
+        - name: CLOUD_API_KEY
+          value: "741674442584288"
+        - name: CLOUD_API_SECRET
+          value: "zKXBPyQhNzh8Uwjs9A7udvpMZjE"
+        - name: REDIS_PASSWORD
+          value: "g5StdPiNEIGFzZFkA6eyrUadzg6gEnXS"
+        - name: REDIS_PORT
+          value: "18636"
+        - name: REDIS_HOST
+          value: "redis-18636.c13.us-east-1-3.ec2.redns.redis-cloud.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -41,6 +148,17 @@ spec:
         image: vaibhavbansal26/music-streaming-appl-song:latest
         ports:
         - containerPort: 5003
+        env:
+        - name: PORT
+          value: "5003"
+        - name: DB_URL
+          value: "postgresql://neondb_owner:npg_9dcrN3VsXeiQ@ep-lucky-credit-a5p1gk2f-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
+        - name: REDIS_PASSWORD
+          value: "g5StdPiNEIGFzZFkA6eyrUadzg6gEnXS"
+        - name: REDIS_PORT
+          value: "18636"
+        - name: REDIS_HOST
+          value: "redis-18636.c13.us-east-1-3.ec2.redns.redis-cloud.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -63,6 +181,15 @@ spec:
         image: vaibhavbansal26/music-streaming-appl-user:latest
         ports:
         - containerPort: 5001
+        env:
+        - name: PORT
+          value: "5001"
+        - name: MONGO_URI
+          value: "mongodb+srv://vaibhavbansal2020:vaibhav26@cluster0.2jmtnrw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+        - name: DB_NAME
+          value: "music_stream"
+        - name: JWT_SECRET
+          value: "secret_vaibhav"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -85,3 +212,12 @@ spec:
         image: vaibhavbansal26/music-streaming-appl-frontend:latest
         ports:
         - containerPort: 80
+        env:
+        - name: VITE_API_URL
+          value: "http://music-streaming-appl-admin-svc:5002"
+        - name: VITE_API_SONG_PORT
+          value: "5003"
+        - name: VITE_API_USER_PORT
+          value: "5001"
+        - name: VITE_API_ADMIN_PORT
+          value: "5002"
