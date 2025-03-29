@@ -11,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_ADMIN_URL;
 const API_ADMIN_PORT = import.meta.env.VITE_API_ADMIN_PORT;
 
 const server = `${API_URL}:${API_ADMIN_PORT}`;
+console.log("1",server);
 
 // const server = 'http://localhost:5002';
 

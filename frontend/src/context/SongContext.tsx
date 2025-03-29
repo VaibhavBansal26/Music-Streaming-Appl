@@ -14,6 +14,7 @@ const API_URL = import.meta.env.VITE_API_SONG_URL;
 const API_SONG_PORT = import.meta.env.VITE_API_SONG_PORT;
 
 const server = `${API_URL}:${API_SONG_PORT}`;
+console.log("2",server);
 
 // const server = 'http://localhost:5003';
 
