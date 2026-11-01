@@ -27,7 +27,7 @@ services:
       - key: ADMIN_EMAILS
         sync: false
       - key: CORS_ORIGIN
-        value: https://music-frontend.onrender.com
+        value: https://music-frontend-x9ts.onrender.com
 
   - type: web
     name: music-song-svc
@@ -50,7 +50,7 @@ services:
       - key: REDIS_PASSWORD
         sync: false
       - key: CORS_ORIGIN
-        value: https://music-frontend.onrender.com
+        value: https://music-frontend-x9ts.onrender.com
 
   - type: web
     name: music-admin-svc
@@ -84,7 +84,7 @@ services:
       - key: REDIS_PASSWORD
         sync: false
       - key: CORS_ORIGIN
-        value: https://music-frontend.onrender.com
+        value: https://music-frontend-x9ts.onrender.com
 
   - type: web
     name: music-frontend

@@ -153,7 +153,7 @@ Also done since the first review pass:
 | `music-song-svc` | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (e.g. Redis Cloud free tier) |
 | `music-admin-svc` | `CLOUD_NAME`, `CLOUD_API_KEY`, `CLOUD_API_SECRET` (Cloudinary), the same Redis values |
 
-`JWT_SECRET` is generated once and shared with the admin service automatically, and `DB_URL` comes from the Render Postgres. The frontend URLs and `CORS_ORIGIN` assume the default names (`music-frontend`, `music-user-svc`, ...); if Render appends a suffix because a name is taken, update those values to the real URLs and redeploy. Free web services sleep after inactivity, so the first request can take about a minute, and the free Postgres expires after 30 days.
+`JWT_SECRET` is generated once and shared with the admin service automatically, and `DB_URL` comes from the Render Postgres. The frontend URLs and `CORS_ORIGIN` assume the default names (`music-user-svc`, ...); the frontend got the public URL `music-frontend-x9ts.onrender.com`, which is what `CORS_ORIGIN` is set to. If you redeploy under new names, update those values to the real URLs. Free web services sleep after inactivity, so the first request can take about a minute, and the free Postgres expires after 30 days.
 
 ## Setup you still have to do
 
