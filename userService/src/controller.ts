@@ -76,6 +76,12 @@ export const loginUser = errorHandler(async (req, res) => {
         return;
     }
 
+    // ADMIN_EMAILS also applies to accounts created before the email was listed.
+    if (user.role !== 'admin' && adminEmails().includes(user.email)) {
+        user.role = 'admin';
+        await user.save();
+    }
+
     res.status(200).json({
         message: 'User logged in successfully',
         user: publicUser(user),

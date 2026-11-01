@@ -89,6 +89,20 @@ describe('POST /api/v1/user/loginUser', () => {
     });
 });
 
+describe('admin promotion on login', () => {
+    it('promotes an existing user whose email was added to ADMIN_EMAILS', async () => {
+        const hash = (await import('bcryptjs')).default.hashSync('longenough1', 4);
+        users.push({ _id: '9', name: 'Boss', email: 'boss@example.com', role: 'user', password: hash, playlists: [], save: vi.fn() });
+        const res = await request(app)
+            .post('/api/v1/user/loginUser')
+            .send({ email: 'boss@example.com', password: 'longenough1' });
+        expect(res.body.user.role).toBe('admin');
+        expect(users[0].save).toHaveBeenCalled();
+        const decoded = jwt.verify(res.body.token, 'test-secret') as jwt.JwtPayload;
+        expect(decoded.role).toBe('admin');
+    });
+});
+
 describe('auth middleware', () => {
     it('returns 401 without a token', async () => {
         const res = await request(app).get('/api/v1/user/getUserProfile');
