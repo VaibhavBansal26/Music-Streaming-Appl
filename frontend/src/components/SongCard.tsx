@@ -19,7 +19,7 @@ const SongCard: React.FC<SongCardProps> = ({ image, name, desc, id }) => {
     <div className="group w-40 shrink-0 rounded-xl bg-white/5 p-3 transition hover:bg-white/10 sm:w-44">
       <div className="relative">
         <img
-          src={image || "/download.jpeg"}
+          src={image || "/placeholder.png"}
           className="aspect-square w-full rounded-lg object-cover shadow-lg"
           alt=""
         />

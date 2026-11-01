@@ -89,7 +89,7 @@ const Player = () => {
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-4 md:grid-cols-[1fr_2fr_1fr]">
         <div className="flex min-w-0 items-center gap-3">
           <img
-            src={song.thumbnail ? song.thumbnail : "/download.jpeg"}
+            src={song.thumbnail ? song.thumbnail : "/placeholder.png"}
             className="h-12 w-12 rounded object-cover"
             alt=""
           />
