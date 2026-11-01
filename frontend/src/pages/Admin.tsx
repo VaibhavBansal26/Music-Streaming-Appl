@@ -53,7 +53,7 @@ const Admin = () => {
         formData,
         {
           headers: {
-            token: localStorage.getItem("token"),
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -90,7 +90,7 @@ const Admin = () => {
     try {
       const { data } = await axios.post(`${server}/api/v1/songs/addSong`, formData, {
         headers: {
-          token: localStorage.getItem("token"),
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
@@ -125,7 +125,7 @@ const Admin = () => {
         formData,
         {
           headers: {
-            token: localStorage.getItem("token"),
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -150,7 +150,7 @@ const Admin = () => {
       try {
         const { data } = await axios.delete(`${server}/api/v1/album/${id}`, {
           headers: {
-            token: localStorage.getItem("token"),
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
@@ -171,7 +171,7 @@ const Admin = () => {
       try {
         const { data } = await axios.delete(`${server}/api/v1/songs/${id}`, {
           headers: {
-            token: localStorage.getItem("token"),
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
