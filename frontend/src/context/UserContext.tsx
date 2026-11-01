@@ -119,7 +119,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       const { data } = await axios.get(`${server}/api/v1/user/getUserProfile`, {
         headers: {
-          token: localStorage.getItem("token"),
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
@@ -141,12 +141,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   async function addToPlaylist(id: string) {
     try {
-      const { data } = await axios.post(
-        `${server}/api/v1/songs/${id}`,
+      const { data } = await axios.put(
+        `${server}/api/v1/playlist/${id}`,
         {},
         {
           headers: {
-            token: localStorage.getItem("token"),
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );

@@ -18,6 +18,8 @@ const authLimiter = rateLimit({
 router.post('/user/registerUser',authLimiter, registerUser)
 router.post('/user/loginUser',authLimiter, loginUser)
 router.get('/user/getUserProfile',isAuth,getUserProfile)
+router.put('/playlist/:id',isAuth,addToPlaylist)
+// Deprecated alias kept for older clients
 router.post('/songs/:id',isAuth,addToPlaylist)
 
 export default router;

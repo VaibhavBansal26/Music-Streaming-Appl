@@ -22,7 +22,7 @@ const publicUser = (user: IUser) => ({
 });
 
 const signToken = (user: IUser) =>
-    jwt.sign({ _id: user._id }, process.env.JWT_SECRET as string, {
+    jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET as string, {
         expiresIn: '7d',
     });
 

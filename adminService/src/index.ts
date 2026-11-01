@@ -69,6 +69,13 @@ async function connectDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         `
+        // Older databases were created with ON DELETE SET NULL; make album deletes cascade to songs.
+        await sql`ALTER TABLE songs DROP CONSTRAINT IF EXISTS songs_album_id_fkey`
+        await sql`
+        ALTER TABLE songs
+        ADD CONSTRAINT songs_album_id_fkey
+        FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+        `
         console.log('Connected to database and initialized tables');
     } catch (error) {
         console.error('Database initialization failed', error);

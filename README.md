@@ -73,7 +73,7 @@ REDIS_PASSWORD=<password>
 ```
 PORT=5002
 DB_URL=<neon postgres url>
-User_URL=http://localhost:5001
+JWT_SECRET=<same value as userService>
 CLOUD_NAME=<cloudinary cloud name>
 CLOUD_API_KEY=<key>
 CLOUD_API_SECRET=<secret>
@@ -136,10 +136,41 @@ Fixed in code (numbers refer to the review list):
 | 20 | Typos, unused imports and console logs removed; duplicate commented-out pipelines deleted |
 | UI | New design system, responsive layout, new player with time and volume, shared song table, auth pages, admin dashboard (its two forms no longer share state) |
 
+Also done since the first review pass:
+
+- Existing databases are migrated automatically: `adminService` now replaces the `songs.album_id` foreign key with `ON DELETE CASCADE` at startup (idempotent), so no manual `ALTER TABLE` is needed.
+- Admin auth verifies the JWT locally with `JWT_SECRET` (the role is a signed claim), instead of calling `userService` on every request. **Tokens issued before this change have no role and need a re-login**, and `adminService` now needs the same `JWT_SECRET` as `userService`. A role change (e.g. adding an email to `ADMIN_EMAILS`) applies after the user logs in again.
+- Playlist toggle is now `PUT /api/v1/playlist/:id` (the old `POST /api/v1/songs/:id` stays as a deprecated alias). The frontend sends `Authorization: Bearer` tokens.
+- `userService` has tests (`npm test`), and GitHub Actions builds all services, runs the tests and lints/builds the frontend.
+
+## Deploy to Render
+
+`render.yaml` is a Blueprint for the whole stack: a Render Postgres, three Docker web services and the React static site. In the Render dashboard choose **New > Blueprint**, select this repo and branch, and fill in the prompted values:
+
+| Service | Values to enter |
+|---|---|
+| `music-user-svc` | `MONGO_URI` (MongoDB Atlas), `ADMIN_EMAILS` |
+| `music-song-svc` | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (e.g. Redis Cloud free tier) |
+| `music-admin-svc` | `CLOUD_NAME`, `CLOUD_API_KEY`, `CLOUD_API_SECRET` (Cloudinary), the same Redis values |
+
+`JWT_SECRET` is generated once and shared with the admin service automatically, and `DB_URL` comes from the Render Postgres. The frontend URLs and `CORS_ORIGIN` assume the default names (`music-frontend`, `music-user-svc`, ...); if Render appends a suffix because a name is taken, update those values to the real URLs and redeploy. Free web services sleep after inactivity, so the first request can take about a minute, and the free Postgres expires after 30 days.
+
+## Setup you still have to do
+
+**Admin account:** set `ADMIN_EMAILS=<your email>` in the user service environment, then register (or log out and in again) with that email.
+
+**Jenkins credentials** (Manage Jenkins, Credentials, Global, Add credentials, kind *Secret file*). Create one per file, using the `.env.example` templates with real values:
+
+| Credential ID | Contents |
+|---|---|
+| `admin-env` | `adminService/.env` (includes `JWT_SECRET`) |
+| `song-env` | `songService/.env` |
+| `user-env` | `userService/.env` (includes `ADMIN_EMAILS`) |
+| `frontend-env` | `frontend/.env` with the public service URLs |
+
+Also keep `docker-cred`, `aws-creds` and the SonarQube server configuration.
+
 Still open:
 
 - **Rotate every leaked credential and purge git history (issue 1).** Removing the files from the working tree does not remove them from history.
-- Existing databases keep the old `albums`/`songs` foreign key (`ON DELETE SET NULL`); run `ALTER TABLE songs DROP CONSTRAINT songs_album_id_fkey, ADD CONSTRAINT songs_album_id_fkey FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE;` once. Until then deleting an album orphans its songs instead of removing them.
-- The JWT is still stored in `localStorage` (issue 15); the backends accept `Authorization: Bearer` but the frontend still sends the `token` header.
-- Admin auth still calls `userService` per request (issue 6), and the playlist route name is unchanged (issue 14).
-- No automated tests.
+- The JWT is still stored in `localStorage` (issue 15). An httpOnly cookie is unreliable when the frontend and APIs sit on different domains (third-party cookie blocking), so it needs a single-origin setup through the ingress first.

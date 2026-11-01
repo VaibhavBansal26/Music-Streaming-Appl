@@ -1,50 +1,38 @@
 
 
 import {Request,Response,NextFunction} from 'express';
-import  axios from 'axios';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import multer from 'multer';
 
 dotenv.config();
 
-export interface IUser {
-    _id: string;
-    name: string;
-    email: string;
-    password: string;
-    role: string;
-    playlists: string[];
-}
-
 interface AuthenticatedRequest extends Request {
-    user?: IUser | null
+    user?: { _id: string; role: string }
 }
 
-export const isAuth = async(req:AuthenticatedRequest, res:Response, next:NextFunction):Promise<void> => {
+// The token is verified locally with the shared JWT_SECRET; the role is a signed claim,
+// so no per-request call to the user service is needed. Role changes apply after re-login.
+export const isAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    const bearer = req.headers.authorization?.startsWith('Bearer ')
+        ? req.headers.authorization.slice(7)
+        : undefined;
+    const token = (bearer ?? req.headers.token) as string | undefined;
+    if (!token) {
+        res.status(401).json({ message: 'Please login' });
+        return;
+    }
+
     try {
-        const bearer = req.headers.authorization?.startsWith('Bearer ')
-            ? req.headers.authorization.slice(7)
-            : undefined;
-        const token = (bearer ?? req.headers.token) as string;
-       if (!token) {
-            res.status(401).json({
-                message: 'Please login'
-            })
-            return
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+        if (!decoded._id || !decoded.role) {
+            res.status(401).json({ message: 'Please login again' });
+            return;
         }
-
-        const {data} = await axios.get(`${process.env.User_URL}/api/v1/user/getUserProfile`, {
-            headers: {
-                token,
-            }
-        });
-        req.user = data
-        next()
-
-    } catch (error:any) {
-        res.status(401).json({
-            message: 'Please login'
-        })
+        req.user = { _id: decoded._id, role: decoded.role };
+        next();
+    } catch {
+        res.status(401).json({ message: 'Please login' });
     }
 }
 
