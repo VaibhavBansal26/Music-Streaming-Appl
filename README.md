@@ -143,6 +143,18 @@ Also done since the first review pass:
 - Playlist toggle is now `PUT /api/v1/playlist/:id` (the old `POST /api/v1/songs/:id` stays as a deprecated alias). The frontend sends `Authorization: Bearer` tokens.
 - `userService` has tests (`npm test`), and GitHub Actions builds all services, runs the tests and lints/builds the frontend.
 
+## Deploy to Render
+
+`render.yaml` is a Blueprint for the whole stack: a Render Postgres, three Docker web services and the React static site. In the Render dashboard choose **New > Blueprint**, select this repo and branch, and fill in the prompted values:
+
+| Service | Values to enter |
+|---|---|
+| `music-user-svc` | `MONGO_URI` (MongoDB Atlas), `ADMIN_EMAILS` |
+| `music-song-svc` | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (e.g. Redis Cloud free tier) |
+| `music-admin-svc` | `CLOUD_NAME`, `CLOUD_API_KEY`, `CLOUD_API_SECRET` (Cloudinary), the same Redis values |
+
+`JWT_SECRET` is generated once and shared with the admin service automatically, and `DB_URL` comes from the Render Postgres. The frontend URLs and `CORS_ORIGIN` assume the default names (`music-frontend`, `music-user-svc`, ...); if Render appends a suffix because a name is taken, update those values to the real URLs and redeploy. Free web services sleep after inactivity, so the first request can take about a minute, and the free Postgres expires after 30 days.
+
 ## Setup you still have to do
 
 **Admin account:** set `ADMIN_EMAILS=<your email>` in the user service environment, then register (or log out and in again) with that email.

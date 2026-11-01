@@ -1,0 +1,105 @@
+# Render Blueprint: New > Blueprint, pick this repo. Values marked sync:false are prompted for
+# at creation time, so no secrets live in git.
+# If the *.onrender.com names below are taken, rename the services and the matching URLs.
+databases:
+  - name: music-db
+    plan: free
+    databaseName: music
+    user: music
+
+services:
+  - type: web
+    name: music-user-svc
+    runtime: docker
+    dockerContext: ./userService
+    dockerfilePath: ./userService/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "5001"
+      - key: DB_NAME
+        value: music_stream
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGO_URI
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://music-frontend.onrender.com
+
+  - type: web
+    name: music-song-svc
+    runtime: docker
+    dockerContext: ./songService
+    dockerfilePath: ./songService/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "5003"
+      - key: DB_URL
+        fromDatabase:
+          name: music-db
+          property: connectionString
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://music-frontend.onrender.com
+
+  - type: web
+    name: music-admin-svc
+    runtime: docker
+    dockerContext: ./adminService
+    dockerfilePath: ./adminService/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "5002"
+      - key: DB_URL
+        fromDatabase:
+          name: music-db
+          property: connectionString
+      - key: JWT_SECRET
+        fromService:
+          type: web
+          name: music-user-svc
+          envVarKey: JWT_SECRET
+      - key: CLOUD_NAME
+        sync: false
+      - key: CLOUD_API_KEY
+        sync: false
+      - key: CLOUD_API_SECRET
+        sync: false
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://music-frontend.onrender.com
+
+  - type: web
+    name: music-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_USER_URL
+        value: https://music-user-svc.onrender.com
+      - key: VITE_API_SONG_URL
+        value: https://music-song-svc.onrender.com
+      - key: VITE_API_ADMIN_URL
+        value: https://music-admin-svc.onrender.com
