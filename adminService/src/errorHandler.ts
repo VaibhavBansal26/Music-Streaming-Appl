@@ -8,7 +8,8 @@ const errorHandler =(handler: RequestHandler) : RequestHandler => {
         try {
             await handler(req, res, next);
         } catch (error:any) {
-            res.status(500).json({ error: error.message });
+            console.error(error);
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 }

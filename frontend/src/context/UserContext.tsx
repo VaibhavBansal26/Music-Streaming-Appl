@@ -8,18 +8,14 @@ import React, {
 } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
-// const server = "http://13.235.70.183:5000";
 
 const API_URL = import.meta.env.VITE_API_USER_URL;
 const API_USER_PORT = import.meta.env.VITE_API_USER_PORT;
 
-const server = `${API_URL}:${API_USER_PORT}`;
-console.log("3",server);
-
-// const server = 'http://localhost:5001';
+const server = API_USER_PORT ? `${API_URL}:${API_USER_PORT}` : API_URL;
 
 
-// const server = `${process.env.API_URL}:${process.env.API_USER_PORT}`;
+
 
 export interface User {
   _id: string;
@@ -130,8 +126,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setUser(data);
       setIsAuth(true);
       setLoading(false);
-    } catch (error) {
-      console.log(error);
+    } catch {
       setLoading(false);
     }
   }

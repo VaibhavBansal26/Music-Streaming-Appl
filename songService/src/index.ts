@@ -1,11 +1,11 @@
-import express from 'express';
 import dotenv from 'dotenv';
-import songRoutes from './routes.js';
+dotenv.config();
+
+import express from 'express';
 import redis from 'redis';
 import cors from 'cors';
-
-
-dotenv.config();
+import helmet from 'helmet';
+import songRoutes from './routes.js';
 
 export const redisClient = redis.createClient({
     password: process.env.REDIS_PASSWORD,
@@ -15,29 +15,32 @@ export const redisClient = redis.createClient({
     }
 });
 
+// Redis is a cache only: the service keeps working from the database without it.
+redisClient.on('error', (error) => console.error('Redis error', error.message));
 redisClient.connect().then(() => {
     console.log('Connected to Redis.');
 }).catch((error) => {
-    console.log(error);
+    console.error('Redis unavailable, continuing without cache', error.message);
 });
-
 
 const app = express();
 
-app.use(cors())
-
-app.use(express.json());
+app.use(helmet());
+app.use(cors({ origin: process.env.CORS_ORIGIN?.split(',') ?? true }));
+app.use(express.json({ limit: '100kb' }));
 
 app.get('/', (req, res) => {
-    res.send('Hello World 2');
-});   
+    res.send('Song service');
+});
 
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', cache: redisClient.isReady });
+});
 
-app.use("/api/v1", songRoutes);
+app.use('/api/v1', songRoutes);
 
 const port = process.env.PORT || 5003;
 
-
 app.listen(port, () => {
     console.log(`Song Server is running on port ${port}`);
-})
+});

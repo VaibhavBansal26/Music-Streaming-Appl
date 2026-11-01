@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSongData } from "../hooks/useSongData";
 import { GrChapterNext, GrChapterPrevious } from "react-icons/gr";
-import { FaPause, FaPlay } from "react-icons/fa";
+import { FaPause, FaPlay, FaVolumeUp } from "react-icons/fa";
 
 const Player = () => {
   const {
@@ -73,68 +73,84 @@ const Player = () => {
     fetchSingleSong();
   }, [selectedSong,fetchSingleSong]);
 
+  const fmt = (t: number) => {
+    if (!isFinite(t)) return "0:00";
+    const m = Math.floor(t / 60);
+    const sec = Math.floor(t % 60).toString().padStart(2, "0");
+    return `${m}:${sec}`;
+  };
+
+  const progressPct = duration ? (progress / duration) * 100 : 0;
+
+  if (!song) return null;
+
   return (
-    <div>
-      {song && (
-        <div className="h-[10%] bg-black flex justify-between items-center text-white px-4">
-          <div className="lg:flex items-center gap-4">
-            <img
-              src={song.thumbnail ? song.thumbnail : "/download.jpeg"}
-              className="w-12"
-              alt=""
-            />
-            <div className="hidden md:block">
-              <p>{song.title}</p>
-              <p>{song.description?.slice(0, 30)}...</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-center gap-1 m-auto">
-            {song.audio && (
-              <audio ref={audioRef} src={song.audio} autoPlay={isPlaying} />
-            )}
-
-            <div className="w-full items-center flex font-thin text-green-400">
-              <input
-                type="range"
-                min={"0"}
-                max={"100"}
-                className="progress-bar w-[120px] md:w-[300px]"
-                value={(progress / duration) * 100 || 0}
-                onChange={durationChange}
-              />
-            </div>
-            <div className="flex justify-center items-center gap-4">
-              <span className="cursor-pointer" onClick={prevSong}>
-                <GrChapterPrevious />
-              </span>
-
-              <button
-                className="bg-white text-black rounded-full p-2"
-                onClick={handlePlayPause}
-              >
-                {isPlaying ? <FaPause /> : <FaPlay />}
-              </button>
-
-              <span className="cursor-pointer" onClick={nextSong}>
-                <GrChapterNext />
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="range"
-              className="w-16 md:w-32"
-              min={"0"}
-              max={"100"}
-              step={"0.01"}
-              value={volume * 100}
-              onChange={volumeChange}
-            />
+    <footer className="shrink-0 border-t border-line bg-black px-4 py-3 text-white">
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-4 md:grid-cols-[1fr_2fr_1fr]">
+        <div className="flex min-w-0 items-center gap-3">
+          <img
+            src={song.thumbnail ? song.thumbnail : "/download.jpeg"}
+            className="h-12 w-12 rounded object-cover"
+            alt=""
+          />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{song.title}</p>
+            <p className="hidden truncate text-xs text-muted sm:block">{song.description}</p>
           </div>
         </div>
-      )}
-    </div>
+
+        <div className="flex flex-col items-center gap-1.5 md:order-none">
+          {song.audio && (
+            <audio ref={audioRef} src={song.audio} autoPlay={isPlaying} />
+          )}
+          <div className="flex items-center gap-5">
+            <button aria-label="Previous song" className="text-muted transition hover:text-white" onClick={prevSong}>
+              <GrChapterPrevious />
+            </button>
+            <button
+              aria-label={isPlaying ? "Pause" : "Play"}
+              className="rounded-full bg-white p-2.5 text-black transition hover:scale-105"
+              onClick={handlePlayPause}
+            >
+              {isPlaying ? <FaPause /> : <FaPlay />}
+            </button>
+            <button aria-label="Next song" className="text-muted transition hover:text-white" onClick={nextSong}>
+              <GrChapterNext />
+            </button>
+          </div>
+          <div className="hidden w-full max-w-xl items-center gap-2 text-xs text-muted md:flex">
+            <span className="w-9 text-right tabular-nums">{fmt(progress)}</span>
+            <input
+              aria-label="Seek"
+              type="range"
+              min={0}
+              max={100}
+              step={0.1}
+              className="w-full"
+              style={{ "--fill": `${progressPct}%` } as React.CSSProperties}
+              value={progressPct}
+              onChange={durationChange}
+            />
+            <span className="w-9 tabular-nums">{fmt(duration)}</span>
+          </div>
+        </div>
+
+        <div className="hidden items-center justify-end gap-2 md:flex">
+          <FaVolumeUp className="text-muted" />
+          <input
+            aria-label="Volume"
+            type="range"
+            className="w-28"
+            min={0}
+            max={100}
+            step={1}
+            style={{ "--fill": `${volume * 100}%` } as React.CSSProperties}
+            value={volume * 100}
+            onChange={volumeChange}
+          />
+        </div>
+      </div>
+    </footer>
   );
 };
 

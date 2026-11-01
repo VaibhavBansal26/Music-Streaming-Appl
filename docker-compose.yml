@@ -1,93 +1,40 @@
-# version: "3.8"
-# services:
-#   admin-service:
-#     build: ./adminService
-#     container_name: admin-service
-#     platform: linux/arm64
-#     ports:
-#       - "5002:5002"
-#     env_file:
-#       - ./adminService/.env
-#     networks:
-#       - app-network
-
-#   song-service:
-#     build: ./songService
-#     container_name: song-service
-#     platform: linux/arm64
-#     ports:
-#       - "5003:5003"
-#     env_file:
-#       - ./songService/.env
-#     networks:
-#       - app-network
-
-#   user-service:
-#     build: ./userService
-#     container_name: user-service
-#     platform: linux/arm64
-#     ports:
-#       - "5001:5001"
-#     env_file:
-#       - ./userService/.env
-#     networks:
-#       - app-network
-
-#   frontend:
-#     build: ./frontend
-#     container_name: frontend
-#     platform: linux/arm64
-#     ports:
-#       - "80:80"
-#     # Optionally, add the env_file if you need to pass build-time or runtime variables:
-#     env_file:
-#       - ./frontend/.env
-#     networks:
-#       - app-network
-
-# networks:
-#   app-network:
-#     driver: bridge
-
-
-# # redis:
-# #     image: redis:7-alpine
-# #     container_name: redis
-# #     ports:
-# #       - "6379:6379"
-# #     command: ["redis-server"]
-
-version: "3.8"
 services:
   admin-service:
     build: ./adminService
-    image: vaibhavbansal26/music-streaming-appl-admin:latest
+    image: vaibhavbansal26/music-streaming-appl-admin:${TAG:-latest}
     env_file:
       - ./adminService/.env
+    ports:
+      - "5002:5002"
     networks:
       - app-network
 
   song-service:
     build: ./songService
-    image: vaibhavbansal26/music-streaming-appl-song:latest
+    image: vaibhavbansal26/music-streaming-appl-song:${TAG:-latest}
     env_file:
       - ./songService/.env
+    ports:
+      - "5003:5003"
     networks:
       - app-network
 
   user-service:
     build: ./userService
-    image: vaibhavbansal26/music-streaming-appl-user:latest
+    image: vaibhavbansal26/music-streaming-appl-user:${TAG:-latest}
     env_file:
       - ./userService/.env
+    ports:
+      - "5001:5001"
     networks:
       - app-network
 
   frontend:
-    build: ./frontend
-    image: vaibhavbansal26/music-streaming-appl-frontend:latest
-    env_file:
-      - ./frontend/.env
+    build:
+      context: ./frontend
+    image: vaibhavbansal26/music-streaming-appl-frontend:${TAG:-latest}
+    ports:
+      - "80:80"
     networks:
       - app-network
 

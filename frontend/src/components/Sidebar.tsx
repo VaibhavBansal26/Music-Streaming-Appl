@@ -1,60 +1,52 @@
-import { useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import { FaHome, FaMusic, FaUserShield } from "react-icons/fa";
 import PlayListCard from "./PlayListCard";
 import { useUserData } from "../hooks/useUserData";
 
+const linkClass = ({ isActive }: { isActive: boolean }) =>
+  `flex items-center gap-4 rounded-lg px-3 py-2.5 font-semibold transition ${
+    isActive ? "bg-white/10 text-white" : "text-muted hover:text-white"
+  }`;
 
 const Sidebar = () => {
-  const navigate = useNavigate();
-  const { user } = useUserData();
+  const { user, isAuth } = useUserData();
+
   return (
-    <div className="w-[25%] h-full p-2 flex-col gap-2 text-white hidden lg:flex">
-      <div className="bg-[#121212] h-[15%] rounded flex flex-col justify-around">
-        <div
-          className="flex items-center gap-3 pl-8 cursor-pointer"
-          onClick={() => navigate("/")}
-        >
-          <img src="/home.png" alt="" className="w-6" />
-          <p className="font-bold">Home</p>
+    <aside className="hidden w-72 shrink-0 flex-col gap-2 lg:flex xl:w-80">
+      <div className="rounded-xl bg-panel p-3">
+        <div className="mb-3 flex items-center gap-2 px-3 py-2">
+          <img src="/logo.png" alt="" className="h-7 w-7 rounded" />
+          <span className="text-lg font-extrabold tracking-tight">Music Streaming</span>
         </div>
-        <div className="flex items-center gap-3 pl-8 cursor-pointer">
-          <img src="/search.png" alt="" className="w-6" />
-          <p className="font-bold">Search</p>
-        </div>
-      </div>
-
-      <div className="bg-[#121212] h-[85%] rounded">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/stack.png" className="w-8" alt="" />
-            <p className="font-semibold">Your Library</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <img src="/arrow.png" className="w-8" alt="" />
-            <img src="/plus.png" className="w-8" alt="" />
-          </div>
-        </div>
-        <div onClick={() => navigate("/playlist")}>
-          <PlayListCard />
-        </div>
-
-        <div className="p-4 m-2 bg-[#121212] rounded font-semibold flex flex-col items-start gap-1 pl-4 mt-4">
-          <h1>Let's findsome podcasts to follow</h1>
-          <p className="font-light">we'll keep you update on new episodes</p>
-          <button className="px-4 py-1.5 bg-white text-black text-[15px] rounded-full mt-4">
-            Browse Padcasts
-          </button>
-        </div>
-
-        {user && user.role === "admin" && (
-          <button
-            className="px-4 py-1.5 bg-white text-black text-[15px] rounded-full mt-4 cursor-pointer"
-            onClick={() => navigate("/admin/dashboard")}
-          >
-            Admin Dashboard
-          </button>
+        <NavLink to="/" end className={linkClass}>
+          <FaHome size={18} /> Home
+        </NavLink>
+        {user?.role === "admin" && (
+          <NavLink to="/admin/dashboard" className={linkClass}>
+            <FaUserShield size={18} /> Admin dashboard
+          </NavLink>
         )}
       </div>
-    </div>
+
+      <div className="flex-1 overflow-y-auto rounded-xl bg-panel p-3">
+        <div className="flex items-center gap-3 px-3 py-2 font-semibold text-muted">
+          <FaMusic size={16} /> Your Library
+        </div>
+        <NavLink to="/playlist" className="block">
+          <PlayListCard />
+        </NavLink>
+
+        {!isAuth && (
+          <div className="mt-4 rounded-lg bg-white/5 p-4">
+            <p className="font-semibold">Save your favourite songs</p>
+            <p className="mt-1 text-sm text-muted">Log in to build your own playlist.</p>
+            <NavLink to="/login" className="chip chip-active mt-4 inline-block">
+              Log in
+            </NavLink>
+          </div>
+        )}
+      </div>
+    </aside>
   );
 };
 

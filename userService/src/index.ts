@@ -1,41 +1,29 @@
-import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
+
+import express from 'express';
 import mongoose from 'mongoose';
-import userRoutes from './routes.js';
-// import { MongoClient, ServerApiVersion } from 'mongodb';
 import cors from 'cors';
+import helmet from 'helmet';
+import userRoutes from './routes.js';
 
 const app = express();
 
-app.use(cors())
-
-dotenv.config();
-
-app.use(express.json());
+app.use(helmet());
+app.use(cors({ origin: process.env.CORS_ORIGIN?.split(',') ?? true }));
+app.use(express.json({ limit: '100kb' }));
 
 const port = process.env.PORT || 5001;
 
-app.use("/api/v1",userRoutes)
+app.get('/', (req, res) => {
+    res.send('User service');
+});
 
-// const client = new MongoClient(process.env.MONGO_URI as string, {
-//     serverApi: {
-//       version: ServerApiVersion.v1,
-//       strict: true,
-//       deprecationErrors: true,
-//     }
-//   });
-  
-//   async function run() {
-//     try {
-//       await client.connect();
-//       await client.db(process.env.DB_NAME).command({ ping: 1 });
-//       console.log("Pinged your deployment. You successfully connected to MongoDB!");
-//     } finally {
-//     //   await client.close();
-//     }
-//   }
-  
-//   run().catch(console.dir);
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', db: mongoose.connection.readyState === 1 });
+});
+
+app.use('/api/v1', userRoutes);
 
 const connectDb = async () => {
     try {
@@ -43,20 +31,14 @@ const connectDb = async () => {
             dbName: process.env.DB_NAME,
         });
         console.log('Connected to database');
-
     } catch (error) {
-        console.log(error);
+        console.error('Database connection failed', error);
+        process.exit(1);
     }
-}
+};
 
-app.get('/', (req, res) => {
-    res.send('Hello World');
-});   
-
-
-
-app.listen(5001, () => {
-    console.log(`Server is running on port ${port}`);
-    // run().catch(console.dir);
-    connectDb();
-})
+connectDb().then(() => {
+    app.listen(port, () => {
+        console.log(`User server is running on port ${port}`);
+    });
+});

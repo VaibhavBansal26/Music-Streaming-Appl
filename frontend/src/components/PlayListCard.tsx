@@ -1,19 +1,17 @@
-import { FaMusic } from "react-icons/fa";
+import { FaHeart } from "react-icons/fa";
 import { useUserData } from "../hooks/useUserData";
-
 
 const PlayListCard = () => {
   const { user, isAuth } = useUserData();
   return (
-    <div className="flex items-center p-4 rounded-lg shadow-md cursor-pointer hover:bg-[#ffffff26]">
-      <div className="w-10 h-10 bg-gray-600 flex items-center justify-center rounded-md">
-        <FaMusic className="text-white text-xl" />
+    <div className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-white/10">
+      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-linear-to-br from-indigo-500 to-emerald-400">
+        <FaHeart className="text-white" />
       </div>
-      <div className="ml-4">
-        <h2>My PlayList</h2>
-        <p className="text-gray-400 text-sm">
-          PlayList •{" "}
-          {isAuth ? <span>{user?.name}</span> : <span>{"User"}</span>}
+      <div className="min-w-0">
+        <h2 className="truncate font-semibold">My Playlist</h2>
+        <p className="truncate text-sm text-muted">
+          Playlist • {isAuth ? user?.name : "Guest"}
         </p>
       </div>
     </div>
