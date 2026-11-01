@@ -11,7 +11,9 @@ export const redisClient = redis.createClient({
     password: process.env.REDIS_PASSWORD,
     socket: {
         host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT as string)
+        port: parseInt(process.env.REDIS_PORT as string),
+        // Back off up to 30s instead of retrying twice a second when Redis is unreachable.
+        reconnectStrategy: (retries) => Math.min(retries * 1000, 30000)
     }
 });
 
