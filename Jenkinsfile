@@ -10,6 +10,7 @@ pipeline {
         SCANNER_HOME     = tool 'sonar-scanner'
         EKS_CLUSTER_NAME = 'music-eks-vb'
         AWS_REGION       = 'us-east-1'
+        TAG              = "${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -28,73 +29,13 @@ pipeline {
         
         stage('Prepare Env Files') {
             steps {
-                sh '''
-                echo "Preparing adminService/.env file..."
-                mkdir -p adminService
-                cat <<EOF > adminService/.env
-DB_URL=postgresql://neondb_owner:npg_9dcrN3VsXeiQ@ep-lucky-credit-a5p1gk2f-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
-PORT=5002
-User_URL=http://music-streaming-appl-user-svc:5001
-CLOUD_NAME=vaibhav-codexpress
-CLOUD_API_KEY=741674442584288
-CLOUD_API_SECRET=zKXBPyQhNzh8Uwjs9A7udvpMZjE
-REDIS_PASSWORD=g5StdPiNEIGFzZFkA6eyrUadzg6gEnXS
-REDIS_PORT=18636
-REDIS_HOST=redis-18636.c13.us-east-1-3.ec2.redns.redis-cloud.com
-EOF
-
-                echo "Preparing userService/.env file..."
-                mkdir -p userService
-                cat <<EOF > userService/.env
-PORT=5001
-MONGO_URI=mongodb+srv://vaibhavbansal2020:vaibhav26@cluster0.2jmtnrw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-DB_NAME=music_stream
-JWT_SECRET=secret_vaibhav
-EOF
-
-                echo "Preparing songService/.env file..."
-                mkdir -p songService
-                cat <<EOF > songService/.env
-PORT=5003
-DB_URL=postgresql://neondb_owner:npg_9dcrN3VsXeiQ@ep-lucky-credit-a5p1gk2f-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
-REDIS_PASSWORD=g5StdPiNEIGFzZFkA6eyrUadzg6gEnXS
-REDIS_PORT=18636
-REDIS_HOST=redis-18636.c13.us-east-1-3.ec2.redns.redis-cloud.com
-EOF
-
-                echo "Preparing frontend/.env file..."
-                mkdir -p frontend
-                cat <<EOF > frontend/.env
-VITE_API_USER_URL=http://a0994e67412394187a5974da84c83804-653032654.us-east-1.elb.amazonaws.com
-VITE_API_SONG_URL=http://ab0a4980a3d0b4aacaf3aee7a734df36-1581781699.us-east-1.elb.amazonaws.com
-VITE_API_ADMIN_URL=http://a92302096c7974ac589beec686428d54-1190030199.us-east-1.elb.amazonaws.com
-VITE_API_ADMIN_PORT=
-VITE_API_SONG_PORT=
-VITE_API_USER_PORT=
-EOF
-                '''
+                // Secret-file credentials hold the .env contents; nothing is echoed to the log.
+                withCredentials([file(credentialsId: 'frontend-env', variable: 'FRONTEND_ENV')]) {
+                    sh 'install -m 600 "$FRONTEND_ENV" frontend/.env'
+                }
             }
         }
-        
-        stage('Verify Env Files') {
-            steps {
-                sh '''
-                echo "Verifying adminService/.env file:"
-                ls -la adminService
-                cat adminService/.env
-                echo "Verifying userService/.env file:"
-                ls -la userService
-                cat userService/.env
-                echo "Verifying songService/.env file:"
-                ls -la songService
-                cat songService/.env
-                echo "Verifying frontend/.env file:"
-                ls -la frontend
-                cat frontend/.env
-                '''
-            }
-        }
-        
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-server') {
@@ -110,8 +51,8 @@ EOF
         stage('Quality Gate') {
             steps {
                 script {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+                    timeout(time: 10, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
                     }
                 }
             }
@@ -123,8 +64,7 @@ EOF
                 cd frontend
                 ls -la
                 if [ -f package.json ]; then
-                    rm -rf node_modules package-lock.json
-                    npm install
+                    npm ci
                 else
                     echo "Error: package.json not found in frontend!"
                     exit 1
@@ -134,21 +74,19 @@ EOF
             }
         }
         
+        stage('Trivy FS Scan') {
+            steps {
+                sh 'trivy fs --severity HIGH,CRITICAL --exit-code 0 . > trivyfs.txt'
+                archiveArtifacts artifacts: 'trivyfs.txt', allowEmptyArchive: true
+            }
+        }
+
         stage('Docker Compose Build & Push') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
                         sh '''
-                        echo "Pruning Docker builder cache..."
-                        docker builder prune -f
-                        
-                        echo "Pruning Docker system (unused containers, images, networks, volumes)..."
-                        docker system prune -a --volumes -f
-                        
-                        echo "Building Docker images using docker-compose (no cache)..."
-                        docker-compose build --no-cache
-                        
-                        echo "Pushing Docker images using docker-compose..."
+                        docker-compose build
                         docker-compose push
                         '''
                     }
@@ -172,16 +110,21 @@ EOF
                         echo "Configuring kubectl for the EKS cluster..."
                         aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
                         
-                        echo "Deploying Kubernetes manifests..."
-                        kubectl apply -f Kubernetes/deployment.yml
+                        echo "Creating/updating secrets from Jenkins credentials..."
+                        for svc in admin song user; do
+                            kubectl create secret generic "$svc-env" --from-env-file="$(printenv ${svc}_ENV_FILE)" \\
+                                --dry-run=client -o yaml | kubectl apply -f -
+                        done
+
+                        echo "Deploying Kubernetes manifests with image tag $TAG..."
+                        sed "s/IMAGE_TAG/$TAG/g" Kubernetes/deployment.yml | kubectl apply -f -
                         kubectl apply -f Kubernetes/node-service.yml
-                        
-                        echo "Restarting deployments (rolling update)..."
-                        kubectl rollout restart deployment/music-streaming-appl-admin
-                        kubectl rollout restart deployment/music-streaming-appl-song
-                        kubectl rollout restart deployment/music-streaming-appl-user
-                        kubectl rollout restart deployment/music-streaming-appl-frontend
-                        
+
+                        kubectl rollout status deployment/music-streaming-appl-admin --timeout=180s
+                        kubectl rollout status deployment/music-streaming-appl-song --timeout=180s
+                        kubectl rollout status deployment/music-streaming-appl-user --timeout=180s
+                        kubectl rollout status deployment/music-streaming-appl-frontend --timeout=180s
+
                         echo "Verifying deployment..."
                         kubectl get pods
                         kubectl get svc
@@ -202,333 +145,3 @@ EOF
     //     }
     // }
 }
-
-
-
-
-// pipeline {
-//     agent any
-
-//     tools {
-//         jdk 'jdk17'
-//         nodejs 'node23'
-//     }
-
-//     environment {
-//         SCANNER_HOME = tool 'sonar-scanner'
-//         // Replace with your desired image name and tag
-//         DOCKER_IMAGE = 'vaibhavbansal26/music-streaming-appl:latest'
-//         EKS_CLUSTER_NAME = 'music-eks-vb'
-//         AWS_REGION = 'us-east-1'
-//     }
-
-//     stages {
-//         stage('Clean Workspace') {
-//             steps {
-//                 cleanWs()
-//             }
-//         }
-
-//         stage('Checkout from Git') {
-//             steps {
-//                 // Update repository URL as needed
-//                 git branch: 'main', url: 'https://github.com/VaibhavBansal26/Music-Streaming-Appl.git'
-//                 sh 'ls -la'
-//             }
-//         }
-
-//         stage('SonarQube Analysis') {
-//             steps {
-//                 withSonarQubeEnv('sonar-server') {
-//                     sh """
-//                     $SCANNER_HOME/bin/sonar-scanner \
-//                         -Dsonar.projectName=MusicStreamingAppl \
-//                         -Dsonar.projectKey=MusicStreamingAppl
-//                     """
-//                 }
-//             }
-//         }
-
-//         stage('Quality Gate') {
-//             steps {
-//                 script {
-//                     waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
-//                 }
-//             }
-//         }
-
-//         stage('Install Dependencies') {
-//             steps {
-//                 // Example: Install frontend dependencies (modify as needed for other services)
-//                 sh '''
-//                 cd frontend
-//                 ls -la
-//                 if [ -f package.json ]; then
-//                     rm -rf node_modules package-lock.json
-//                     npm install
-//                 else
-//                     echo "Error: package.json not found in frontend!"
-//                     exit 1
-//                 fi
-//                 '''
-//             }
-//         }
-
-//         stage('OWASP FS Scan') {
-//             steps {
-//                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-//                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-//             }
-//         }
-
-//         stage('Trivy FS Scan') {
-//             steps {
-//                 sh 'trivy fs . > trivyfs.txt'
-//             }
-//         }
-
-//         stage('Docker Build & Push') {
-//             steps {
-//                 script {
-//                     withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-//                         sh '''
-//                         echo "Building Docker image for the frontend..."
-//                         # Build the Docker image from the frontend Dockerfile.
-//                         # You can add additional builds for adminService, songService, and userService as needed.
-//                         docker build --no-cache -t $DOCKER_IMAGE -f frontend/Dockerfile frontend
-
-//                         echo "Pushing Docker image to Docker Hub..."
-//                         docker push $DOCKER_IMAGE
-//                         '''
-//                     }
-//                 }
-//             }
-//         }
-
-//         stage('Deploy to EKS Cluster') {
-//             steps {
-//                 script {
-//                     sh '''
-//                     echo "Verifying AWS credentials..."
-//                     aws sts get-caller-identity
-
-//                     echo "Configuring kubectl for EKS cluster..."
-//                     aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
-
-//                     echo "Verifying kubeconfig..."
-//                     kubectl config view
-
-//                     echo "Deploying application to EKS..."
-//                     # Apply your Kubernetes manifests.
-//                     # Adjust paths if your manifests are stored in a different location (e.g., k8s/ directory)
-//                     kubectl apply -f deployment.yml
-//                     kubectl apply -f service.yml
-
-//                     echo "Verifying deployment..."
-//                     kubectl get pods
-//                     kubectl get svc
-//                     '''
-//                 }
-//             }
-//         }
-//     }
-
-//     post {
-//         always {
-//             emailext attachLog: true,
-//                      subject: "'${currentBuild.result}'",
-//                      body: "Project: ${env.JOB_NAME}<br/>" +
-//                            "Build Number: ${env.BUILD_NUMBER}<br/>" +
-//                            "URL: ${env.BUILD_URL}<br/>",
-//                      to: 'thesimpleguy03@gmail.com',
-//                      attachmentsPattern: 'trivyfs.txt'
-//         }
-//     }
-// }
-
-
-// pipeline {
-//     agent any
-
-//     tools {
-//         jdk 'jdk-17'
-//         nodejs 'node-23'
-//     }
-
-//     environment {
-//         SCANNER_HOME     = tool 'sonar-scanner'
-//         EKS_CLUSTER_NAME = 'music-eks-vb'
-//         AWS_REGION       = 'us-east-1'
-//     }
-
-//     stages {
-//         stage('Clean Workspace') {
-//             steps {
-//                 cleanWs()
-//             }
-//         }
-        
-//         stage('Checkout from Git') {
-//             steps {
-//                 git branch: 'main', url: 'https://github.com/VaibhavBansal26/Music-Streaming-Appl.git'
-//                 sh 'ls -la'
-//             }
-//         }
-        
-//         stage('Prepare Env Files') {
-//             steps {
-//                 sh '''
-//                 echo "Preparing adminService/.env file..."
-//                 mkdir -p adminService
-//                 cat <<EOF > adminService/.env
-// DB_URL=postgresql://neondb_owner:npg_9dcrN3VsXeiQ@ep-lucky-credit-a5p1gk2f-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
-// PORT=5002
-// User_URL=http://localhost:5001
-// CLOUD_NAME=vaibhav-codexpress
-// CLOUD_API_KEY=741674442584288
-// CLOUD_API_SECRET=zKXBPyQhNzh8Uwjs9A7udvpMZjE
-// REDIS_PASSWORD=g5StdPiNEIGFzZFkA6eyrUadzg6gEnXS
-// REDIS_PORT=18636
-// REDIS_HOST=redis-18636.c13.us-east-1-3.ec2.redns.redis-cloud.com
-// EOF
-
-//                 echo "Preparing userService/.env file..."
-//                 mkdir -p userService
-//                 cat <<EOF > userService/.env
-// PORT=5001
-// MONGO_URI=mongodb+srv://vaibhavbansal2020:vaibhav26@cluster0.2jmtnrw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-// DB_NAME=music_stream
-// JWT_SECRET=secret_vaibhav
-// EOF
-
-//                 echo "Preparing songService/.env file..."
-//                 mkdir -p songService
-//                 cat <<EOF > songService/.env
-// PORT=5003
-// DB_URL=postgresql://neondb_owner:npg_9dcrN3VsXeiQ@ep-lucky-credit-a5p1gk2f-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
-// REDIS_PASSWORD=g5StdPiNEIGFzZFkA6eyrUadzg6gEnXS
-// REDIS_PORT=18636
-// REDIS_HOST=redis-18636.c13.us-east-1-3.ec2.redns.redis-cloud.com
-// EOF
-
-//                 echo "Preparing frontend/.env file..."
-//                 mkdir -p frontend
-//                 cat <<EOF > frontend/.env
-// VITE_API_URL=http://localhost
-// VITE_API_SONG_PORT=5003
-// VITE_API_USER_PORT=5001
-// VITE_API_ADMIN_PORT=5002
-// EOF
-//                 '''
-//             }
-//         }
-        
-//         stage('SonarQube Analysis') {
-//             steps {
-//                 withSonarQubeEnv('sonar-server') {
-//                     sh """
-//                     $SCANNER_HOME/bin/sonar-scanner \\
-//                         -Dsonar.projectName=MusicStreamingAppl \\
-//                         -Dsonar.projectKey=MusicStreamingAppl
-//                     """
-//                 }
-//             }
-//         }
-        
-//         stage('Quality Gate') {
-//             steps {
-//                 script {
-//                     waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
-//                 }
-//             }
-//         }
-        
-//         stage('Install Frontend Dependencies') {
-//             steps {
-//                 sh '''
-//                 cd frontend
-//                 ls -la
-//                 if [ -f package.json ]; then
-//                     rm -rf node_modules package-lock.json
-//                     npm install
-//                 else
-//                     echo "Error: package.json not found in frontend!"
-//                     exit 1
-//                 fi
-//                 cd ..
-//                 '''
-//             }
-//         }
-        
-//         // stage('OWASP FS Scan') {
-//         //     steps {
-//         //         dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-//         //         dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-//         //     }
-//         // }
-        
-//         // stage('Trivy FS Scan') {
-//         //     steps {
-//         //         sh 'trivy fs . > trivyfs.txt'
-//         //     }
-//         // }
-        
-//         stage('Docker Compose Build & Push') {
-//             steps {
-//                 script {
-//                     withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-//                         sh '''
-//                         echo "Building Docker images using docker compose..."
-//                         docker-compose build --no-cache
-
-//                         echo "Pushing Docker images using docker compose..."
-//                         docker-compose push
-//                         '''
-//                     }
-//                 }
-//             }
-//         }
-        
-//         stage('Deploy to EKS Cluster') {
-//             steps {
-//                 script {
-//                     // Bind AWS credentials using withCredentials (provided by AWS Credentials Binding Plugin)
-//                     withCredentials([[
-//                         $class: 'AmazonWebServicesCredentialsBinding', 
-//                         credentialsId: 'aws-creds', 
-//                         accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
-//                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-//                     ]]) {
-//                         sh '''
-//                         echo "Verifying AWS credentials..."
-//                         aws sts get-caller-identity
-
-//                         echo "Configuring kubectl for the EKS cluster..."
-//                         aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
-
-//                         echo "Verifying kubeconfig..."
-//                         kubectl config view
-
-//                         echo "Deploying application to EKS..."
-//                         kubectl apply -f Kubernetes/
-
-//                         echo "Verifying deployment..."
-//                         kubectl get pods
-//                         kubectl get svc
-//                         '''
-//                     }
-//                 }
-//             }
-//         }
-//     }
-    
-//     // post {
-//     //     always {
-//     //         emailext attachLog: true,
-//     //                  subject: "'${currentBuild.result}'",
-//     //                  body: "Project: ${env.JOB_NAME}<br/>Build Number: ${env.BUILD_NUMBER}<br/>URL: ${env.BUILD_URL}<br/>",
-//     //                  to: 'thesimpleguy03@gmail.com',
-//     //                  attachmentsPattern: 'trivyfs.txt'
-//     //     }
-//     // }
-// }

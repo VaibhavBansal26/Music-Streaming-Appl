@@ -9,14 +9,11 @@ import React, {
 } from "react";
 
 
-// const server = "http://13.235.70.183:8000";
 const API_URL = import.meta.env.VITE_API_SONG_URL;
 const API_SONG_PORT = import.meta.env.VITE_API_SONG_PORT;
 
-const server = `${API_URL}:${API_SONG_PORT}`;
-console.log("2",server);
+const server = API_SONG_PORT ? `${API_URL}:${API_SONG_PORT}` : API_URL;
 
-// const server = 'http://localhost:5003';
 
 export interface Song {
   id: string;
@@ -74,7 +71,7 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
       if (data.length > 0) setSelectedSong(data[0].id.toString());
       setIsPlaying(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -90,7 +87,7 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
       );
       setSong(data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }, [selectedSong]);
 
@@ -100,7 +97,7 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
       const { data } = await axios.get<Album[]>(`${server}/api/v1/album/all`);
       setAlbums(data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -138,7 +135,7 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
       setAlbumData(data.album);
       setAlbumSong(data.songs);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
 import React from "react";
-import { FaBookmark, FaPlay } from "react-icons/fa";
+import { FaBookmark, FaPlay, FaRegBookmark } from "react-icons/fa";
 import { useUserData } from "../hooks/useUserData";
 import { useSongData } from "../hooks/useSongData";
 
@@ -11,40 +11,42 @@ interface SongCardProps {
 }
 
 const SongCard: React.FC<SongCardProps> = ({ image, name, desc, id }) => {
-  const { addToPlaylist, isAuth } = useUserData();
+  const { addToPlaylist, isAuth, user } = useUserData();
+  const { setSelectedSong, setIsPlaying } = useSongData();
+  const saved = user?.playlists?.includes(String(id));
 
-  const {setSelectedSong, setIsPlaying} = useSongData()
-
-  const saveToPlayListHanlder = () => {
-    addToPlaylist(id);
-  };
   return (
-    <div className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]">
-      <div className="relative group">
+    <div className="group w-40 shrink-0 rounded-xl bg-white/5 p-3 transition hover:bg-white/10 sm:w-44">
+      <div className="relative">
         <img
-          src={image ? image : "/download.jpeg"}
-          className="mr-1 w-[160px] rounded"
-          alt={name}
+          src={image || "/download.jpeg"}
+          className="aspect-square w-full rounded-lg object-cover shadow-lg"
+          alt=""
         />
-        <div className="flex gap-2">
-          <button className="absolute bottom-2 right-14 bg-green-500 text-black p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer" onClick={()=>{
-            setSelectedSong(id);
-            setIsPlaying(true)
-          }}>
-            <FaPlay />
-          </button>
+        <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 transition duration-200 group-focus-within:opacity-100 group-hover:opacity-100">
           {isAuth && (
             <button
-              className="absolute bottom-2 right-2 bg-green-500 text-black p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              onClick={saveToPlayListHanlder}
+              aria-label={saved ? "Remove from playlist" : "Add to playlist"}
+              className="rounded-full bg-black/70 p-2.5 text-white transition hover:scale-105"
+              onClick={() => addToPlaylist(id)}
             >
-              <FaBookmark />
+              {saved ? <FaBookmark /> : <FaRegBookmark />}
             </button>
           )}
+          <button
+            aria-label={`Play ${name}`}
+            className="rounded-full bg-accent p-3 text-black shadow-lg transition hover:scale-105"
+            onClick={() => {
+              setSelectedSong(id);
+              setIsPlaying(true);
+            }}
+          >
+            <FaPlay />
+          </button>
         </div>
       </div>
-      <p className="font-bold mt-2 mb-1">{name}</p>
-      <p className="text-slate-200 text-sm">{desc.slice(0, 20)}...</p>
+      <p className="mt-3 truncate font-semibold">{name}</p>
+      <p className="mt-0.5 line-clamp-2 text-sm text-muted">{desc}</p>
     </div>
   );
 };

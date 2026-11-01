@@ -22,9 +22,12 @@ interface AuthenticatedRequest extends Request {
 
 export const isAuth = async(req:AuthenticatedRequest, res:Response, next:NextFunction):Promise<void> => {
     try {
-        const token = req.headers.token as string;
+        const bearer = req.headers.authorization?.startsWith('Bearer ')
+            ? req.headers.authorization.slice(7)
+            : undefined;
+        const token = (bearer ?? req.headers.token) as string;
        if (!token) {
-            res.status(403).json({
+            res.status(401).json({
                 message: 'Please login'
             })
             return
@@ -39,7 +42,7 @@ export const isAuth = async(req:AuthenticatedRequest, res:Response, next:NextFun
         next()
 
     } catch (error:any) {
-        res.status(403).json({
+        res.status(401).json({
             message: 'Please login'
         })
     }
@@ -49,7 +52,16 @@ export const isAuth = async(req:AuthenticatedRequest, res:Response, next:NextFun
 const storage = multer.memoryStorage();
 
 const uploadFile = multer({
-    storage}).single('file');
+    storage,
+    limits: { fileSize: 25 * 1024 * 1024, files: 1 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('audio/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image and audio files are allowed'));
+        }
+    },
+}).single('file');
 
 
 export default uploadFile;

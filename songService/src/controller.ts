@@ -6,7 +6,7 @@ import { redisClient } from "./index.js";
 
 export const getAllAlbum = errorHandler(async (req, res) => {
     let albums;
-    const CACHE_EXPIRY = 1000
+    const CACHE_EXPIRY = 300
 
     if (redisClient.isReady) {
         albums = await redisClient.get('albums')
@@ -14,11 +14,9 @@ export const getAllAlbum = errorHandler(async (req, res) => {
     }
 
     if (albums) {
-        console.log('from cache')
         res.json(JSON.parse(albums))
         return
     } else {
-        console.log('from db')
         albums = await sql `
             SELECT * FROM albums
         `
@@ -36,7 +34,7 @@ export const getAllAlbum = errorHandler(async (req, res) => {
 
 export const getAllSongs = errorHandler(async (req, res) => {
     let songs;
-    const CACHE_EXPIRY = 1000
+    const CACHE_EXPIRY = 300
 
     if (redisClient.isReady) {
         songs = await redisClient.get('songs')
@@ -61,7 +59,11 @@ export const getAllSongs = errorHandler(async (req, res) => {
 
 export const getAllSongsByAlbum = errorHandler(async (req, res) => {
     let album,songs;
-    const CACHE_EXPIRY = 1000
+    if (!/^\d+$/.test(req.params.id)) {
+        res.status(400).json({ message: 'Invalid album id' })
+        return
+    }
+    const CACHE_EXPIRY = 300
 
     if (redisClient.isReady) {
         const cacheData = await redisClient.get(`album_song_${req.params.id}`)
@@ -101,6 +103,10 @@ export const getAllSongsByAlbum = errorHandler(async (req, res) => {
 
 export const getSong = errorHandler(async (req, res) => {
     let song;
+    if (!/^\d+$/.test(req.params.id)) {
+        res.status(400).json({ message: 'Invalid song id' })
+        return
+    }
     song = await sql `
         SELECT * FROM songs
         WHERE id = ${req.params.id}

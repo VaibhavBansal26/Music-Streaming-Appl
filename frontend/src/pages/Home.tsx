@@ -4,50 +4,43 @@ import Loading from "../components/Loading";
 import SongCard from "../components/SongCard";
 import { useSongData } from "../hooks/useSongData";
 
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section className="mb-8">
+    <h2 className="mb-4 text-2xl font-bold tracking-tight">{title}</h2>
+    <div className="flex gap-3 overflow-x-auto pb-2">{children}</div>
+  </section>
+);
+
 const Home = () => {
   const { albums, songs, loading } = useSongData();
   return (
-    <div>
+    <Layout>
       {loading ? (
         <Loading />
       ) : (
-        <Layout>
-          <div className="mb-4">
-            <h1 className="my-5 font-bold text-2xl">Featured Charts</h1>
-            <div className="flex overflow-auto">
-              {albums?.map((e, i) => {
-                return (
-                  <AlbumCard
-                    key={i}
-                    image={e.thumbnail}
-                    name={e.title}
-                    desc={e.description}
-                    id={e.id}
-                  />
-                );
-              })}
-            </div>
-          </div>
+        <>
+          <Section title="Featured albums">
+            {albums?.length ? (
+              albums.map((e) => (
+                <AlbumCard key={e.id} image={e.thumbnail} name={e.title} desc={e.description} id={e.id} />
+              ))
+            ) : (
+              <p className="text-muted">No albums yet.</p>
+            )}
+          </Section>
 
-          <div className="mb-4">
-            <h1 className="my-5 font-bold text-2xl">Today's biggest hits</h1>
-            <div className="flex overflow-auto">
-              {songs?.map((e, i) => {
-                return (
-                  <SongCard
-                    key={i}
-                    image={e.thumbnail}
-                    name={e.title}
-                    desc={e.description}
-                    id={e.id}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        </Layout>
+          <Section title="Today's biggest hits">
+            {songs?.length ? (
+              songs.map((e) => (
+                <SongCard key={e.id} image={e.thumbnail} name={e.title} desc={e.description} id={e.id} />
+              ))
+            ) : (
+              <p className="text-muted">No songs yet.</p>
+            )}
+          </Section>
+        </>
       )}
-    </div>
+    </Layout>
   );
 };
 

@@ -10,13 +10,10 @@ import { MdDelete } from "react-icons/md";
 const API_URL = import.meta.env.VITE_API_ADMIN_URL;
 const API_ADMIN_PORT = import.meta.env.VITE_API_ADMIN_PORT;
 
-const server = `${API_URL}:${API_ADMIN_PORT}`;
-console.log("1",server);
-
-// const server = 'http://localhost:5002';
+const server = API_ADMIN_PORT ? `${API_URL}:${API_ADMIN_PORT}` : API_URL;
 
 
-// const server = `${process.env.API_URL}:${process.env.API_ADMIN_PORT}`;
+
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -26,8 +23,11 @@ const Admin = () => {
 
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [songTitle, setSongTitle] = useState<string>("");
+  const [songDescription, setSongDescription] = useState<string>("");
   const [album, setAlbum] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
+  const [thumbFile, setThumbFile] = useState<File | null>(null);
   const [btnLoading, setBtnLoading] = useState<boolean>(false);
 
   const fileChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
@@ -80,8 +80,8 @@ const Admin = () => {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
+    formData.append("title", songTitle);
+    formData.append("description", songDescription);
     formData.append("file", file);
     formData.append("album_id", album);
 
@@ -97,8 +97,8 @@ const Admin = () => {
       toast.success(data.message);
       fetchSongs();
       setBtnLoading(false);
-      setTitle("");
-      setDescription("");
+      setSongTitle("");
+      setSongDescription("");
       setFile(null);
       setAlbum("");
     } catch (error: unknown) {
@@ -112,11 +112,10 @@ const Admin = () => {
   };
 
   const addThumbnailHandler = async (id: string) => {
-    console.log(id);
-    if (!file) return;
+    if (!thumbFile) return;
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", thumbFile);
 
     setBtnLoading(true);
 
@@ -134,7 +133,7 @@ const Admin = () => {
       toast.success(data.message);
       fetchSongs();
       setBtnLoading(false);
-      setFile(null);
+      setThumbFile(null);
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
         toast.error(error.response.data?.message || "An error occurred");
@@ -191,167 +190,112 @@ const Admin = () => {
       navigate("/");
     }
   }, [user, navigate]);
+  const field = "auth-input";
+  const card = "rounded-xl border border-line bg-panel p-6";
+  const sectionTitle = "mb-4 text-xl font-bold tracking-tight";
+
   return (
-    <div className="min-h-screen bg-[#212121] text-white p-8">
-      <Link
-        to={"/"}
-        className="bg-green-500 text-white font-bold py-2 px-4 rounded-full"
-      >
-        Go to home page
-      </Link>
+    <div className="min-h-screen bg-surface px-4 py-8 text-white sm:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-extrabold tracking-tight">Admin dashboard</h1>
+          <Link to="/" className="chip chip-active">
+            Back to home
+          </Link>
+        </div>
 
-      <h2 className="text-2xl font-bold mb-6 mt-6">Add Album</h2>
-      <form
-        className="bg-[#181818] p-6 rounded-lg shadow-lg flex flex-col items-center justify-center gap-4"
-        onSubmit={addAlbumHandler}
-      >
-        <input
-          type="text"
-          placeholder="Title"
-          className="auth-input"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Descripiton"
-          className="auth-input"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
-        <input
-          type="file"
-          placeholder="Choose Thumbnail"
-          onChange={fileChangeHandler}
-          className="auth-input"
-          accept="image/*"
-          required
-        />
-        <button
-          className="auth-btn"
-          style={{ width: "100px" }}
-          disabled={btnLoading}
-        >
-          {btnLoading ? "Please Wait..." : "Add"}
-        </button>
-      </form>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <form className={card} onSubmit={addAlbumHandler}>
+            <h2 className={sectionTitle}>Add album</h2>
+            <div className="space-y-3">
+              <input type="text" placeholder="Title" className={field} value={title} maxLength={255} onChange={(e) => setTitle(e.target.value)} required />
+              <input type="text" placeholder="Description" className={field} value={description} maxLength={255} onChange={(e) => setDescription(e.target.value)} required />
+              <label className="block text-sm text-muted">
+                Cover image
+                <input type="file" onChange={fileChangeHandler} className={`${field} mt-1`} accept="image/*" required />
+              </label>
+              <button className="auth-btn sm:w-40" disabled={btnLoading}>
+                {btnLoading ? "Please wait..." : "Add album"}
+              </button>
+            </div>
+          </form>
 
-      <h2 className="text-2xl font-bold mb-6 mt-6">Add AddSong</h2>
-      <form
-        className="bg-[#181818] p-6 rounded-lg shadow-lg flex flex-col items-center justify-center gap-4"
-        onSubmit={addSongHandler}
-      >
-        <input
-          type="text"
-          placeholder="Title"
-          className="auth-input"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Descripiton"
-          className="auth-input"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
-        <select
-          className="auth-input"
-          value={album}
-          onChange={(e) => setAlbum(e.target.value)}
-          required
-        >
-          <option value="">Choose Album</option>
-          {albums?.map((e: any, i: number) => {
-            return (
-              <option value={e.id} key={i}>
-                {e.title}
-              </option>
-            );
-          })}
-        </select>
-        <input
-          type="file"
-          placeholder="Choose audio"
-          onChange={fileChangeHandler}
-          className="auth-input"
-          accept="audio/*"
-          required
-        />
-        <button
-          className="auth-btn"
-          style={{ width: "100px" }}
-          disabled={btnLoading}
-        >
-          {btnLoading ? "Please Wait..." : "Add"}
-        </button>
-      </form>
+          <form className={card} onSubmit={addSongHandler}>
+            <h2 className={sectionTitle}>Add song</h2>
+            <div className="space-y-3">
+              <input type="text" placeholder="Title" className={field} value={songTitle} maxLength={255} onChange={(e) => setSongTitle(e.target.value)} required />
+              <input type="text" placeholder="Description" className={field} value={songDescription} maxLength={255} onChange={(e) => setSongDescription(e.target.value)} required />
+              <select className={field} value={album} onChange={(e) => setAlbum(e.target.value)} required>
+                <option value="">Choose album</option>
+                {albums?.map((e: any) => (
+                  <option value={e.id} key={e.id}>
+                    {e.title}
+                  </option>
+                ))}
+              </select>
+              <label className="block text-sm text-muted">
+                Audio file
+                <input type="file" onChange={fileChangeHandler} className={`${field} mt-1`} accept="audio/*" required />
+              </label>
+              <button className="auth-btn sm:w-40" disabled={btnLoading}>
+                {btnLoading ? "Please wait..." : "Add song"}
+              </button>
+            </div>
+          </form>
+        </div>
 
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold mb-4">Added Albums</h3>
-        <div className="flex justify-center md:justify-start gap-2 items-center flex-wrap">
-          {albums?.map((e, i) => {
-            return (
-              <div className="bg-[#181818] p-4 rounded-lg shadow-md" key={i}>
-                <img src={e.thumbnail} className="mr-1 w-52 h-52" alt="" />
-                <h4 className="text-lg font-bold">{e.title.slice(0, 30)}</h4>
-                <h4 className="text-lg font-bold">
-                  {e.description.slice(0, 20)}..
-                </h4>
+        <section className="mt-10">
+          <h2 className={sectionTitle}>Albums ({albums?.length ?? 0})</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {albums?.map((e) => (
+              <div className="rounded-xl bg-panel p-3" key={e.id}>
+                <img src={e.thumbnail} className="aspect-square w-full rounded-lg object-cover" alt="" />
+                <h3 className="mt-3 truncate font-semibold">{e.title}</h3>
+                <p className="truncate text-sm text-muted">{e.description}</p>
                 <button
                   disabled={btnLoading}
-                  className="px-3 py-1 bg-red-500 text-white rounded"
+                  className="mt-3 flex items-center gap-1 rounded-full bg-red-500/15 px-3 py-1 text-sm font-medium text-red-400 transition hover:bg-red-500/25 disabled:opacity-50"
                   onClick={() => deleteAlbum(e.id)}
                 >
-                  <MdDelete />
+                  <MdDelete /> Delete
                 </button>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
+        </section>
 
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold mb-4">Added Songs</h3>
-        <div className="flex justify-center md:justify-start gap-2 items-center flex-wrap">
-          {songs?.map((e, i) => {
-            return (
-              <div className="bg-[#181818] p-4 rounded-lg shadow-md" key={i}>
+        <section className="mt-10">
+          <h2 className={sectionTitle}>Songs ({songs?.length ?? 0})</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {songs?.map((e) => (
+              <div className="rounded-xl bg-panel p-3" key={e.id}>
                 {e.thumbnail ? (
-                  <img src={e.thumbnail} className="mr-1 w-52 h-52" alt="" />
+                  <img src={e.thumbnail} className="aspect-square w-full rounded-lg object-cover" alt="" />
                 ) : (
-                  <div className="flex flex-col justify-center items-center gap-2 w-[250px]">
-                    <input type="file" onChange={fileChangeHandler} />
+                  <div className="flex aspect-square w-full flex-col justify-center gap-2 rounded-lg border border-dashed border-line p-2 text-xs">
+                    <input type="file" accept="image/*" onChange={(ev) => setThumbFile(ev.target.files?.[0] || null)} />
                     <button
-                      className="auth-btn"
-                      style={{ width: "200px" }}
-                      disabled={btnLoading}
+                      className="chip chip-active disabled:opacity-50"
+                      disabled={btnLoading || !thumbFile}
                       onClick={() => addThumbnailHandler(e.id)}
                     >
-                      {btnLoading ? "Please Wait..." : "Add Thumbnail"}
+                      Add thumbnail
                     </button>
                   </div>
                 )}
-
-                <h4 className="text-lg font-bold">{e.title.slice(0, 30)}</h4>
-                <h4 className="text-lg font-bold">
-                  {e.description.slice(0, 20)}..
-                </h4>
+                <h3 className="mt-3 truncate font-semibold">{e.title}</h3>
+                <p className="truncate text-sm text-muted">{e.description}</p>
                 <button
                   disabled={btnLoading}
-                  className="px-3 py-1 bg-red-500 text-white rounded"
+                  className="mt-3 flex items-center gap-1 rounded-full bg-red-500/15 px-3 py-1 text-sm font-medium text-red-400 transition hover:bg-red-500/25 disabled:opacity-50"
                   onClick={() => deleteSong(e.id)}
                 >
-                  <MdDelete />
+                  <MdDelete /> Delete
                 </button>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
