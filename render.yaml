@@ -8,6 +8,13 @@ databases:
     user: music
 
 services:
+  # Redis-compatible cache; reachable only from services in the same Render account/region
+  - type: keyvalue
+    name: music-cache
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
   - type: web
     name: music-user-svc
     runtime: docker
@@ -44,11 +51,15 @@ services:
           name: music-db
           property: connectionString
       - key: REDIS_HOST
-        sync: false
+        fromService:
+          type: keyvalue
+          name: music-cache
+          property: host
       - key: REDIS_PORT
-        sync: false
-      - key: REDIS_PASSWORD
-        sync: false
+        fromService:
+          type: keyvalue
+          name: music-cache
+          property: port
       - key: CORS_ORIGIN
         value: https://music-frontend-x9ts.onrender.com
 
@@ -78,11 +89,15 @@ services:
       - key: CLOUD_API_SECRET
         sync: false
       - key: REDIS_HOST
-        sync: false
+        fromService:
+          type: keyvalue
+          name: music-cache
+          property: host
       - key: REDIS_PORT
-        sync: false
-      - key: REDIS_PASSWORD
-        sync: false
+        fromService:
+          type: keyvalue
+          name: music-cache
+          property: port
       - key: CORS_ORIGIN
         value: https://music-frontend-x9ts.onrender.com
 
