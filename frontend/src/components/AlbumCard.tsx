@@ -16,7 +16,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ image, name, desc, id }) => {
       className="group w-40 shrink-0 rounded-xl bg-white/5 p-3 text-left transition hover:bg-white/10 sm:w-44"
     >
       <img
-        src={image || "/download.jpeg"}
+        src={image || "/placeholder.png"}
         className="aspect-square w-full rounded-lg object-cover shadow-lg transition group-hover:scale-[1.02]"
         alt=""
       />

@@ -10,7 +10,7 @@ interface PageHeaderProps {
 const PageHeader: React.FC<PageHeaderProps> = ({ image, eyebrow, title, subtitle }) => (
   <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-end">
     <img
-      src={image || "/download.jpeg"}
+      src={image || "/placeholder.png"}
       className="h-48 w-48 rounded-xl object-cover shadow-2xl"
       alt=""
     />

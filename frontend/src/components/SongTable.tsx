@@ -39,7 +39,7 @@ const SongTable: React.FC<SongTableProps> = ({ songs, emptyMessage }) => {
             </span>
             <div className="flex min-w-0 items-center gap-3">
               <img
-                src={song.thumbnail || "/download.jpeg"}
+                src={song.thumbnail || "/placeholder.png"}
                 className="h-10 w-10 rounded object-cover"
                 alt=""
               />
